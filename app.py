@@ -67,4 +67,4 @@ def stop():
         return f"❌ Erreur traitement : {str(e)}"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
