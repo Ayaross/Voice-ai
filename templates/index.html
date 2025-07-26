@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎤 Cloneur vocal</title>
+  <title>🎤 Cloneur vocal Joseph</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom right, #1e1e2f, #3f3f6f);
       color: white;
       height: 100vh;
@@ -16,7 +16,6 @@
       justify-content: center;
       align-items: center;
     }
-
     .container {
       text-align: center;
       background-color: rgba(255, 255, 255, 0.08);
@@ -26,79 +25,128 @@
       max-width: 400px;
       width: 90%;
     }
-
     h1 {
       font-size: 26px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
-
-    button {
+    #recordBtn {
       background-color: #4caf50;
       color: white;
       font-size: 18px;
       padding: 12px 24px;
-      margin: 10px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      width: 80%;
+      width: 90%;
+      transition: background-color 0.3s;
     }
-
-    button:hover {
-      background-color: #45a049;
+    #recordBtn.recording {
+      background-color: #ff5722 !important;
     }
-
-    button:nth-child(3) {
-      background-color: #f44336;
-    }
-
-    button:nth-child(3):hover {
-      background-color: #d32f2f;
-    }
-
     #status {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: 16px;
     }
-
     .blinking {
       animation: blink 1s infinite;
     }
-
     @keyframes blink {
       0% { opacity: 1; }
       50% { opacity: 0.3; }
       100% { opacity: 1; }
+    }
+    .history {
+      margin-bottom: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .entry {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .entry span {
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .entry button {
+      background-color: #2196f3;
+      font-size: 14px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🎤 Cloneur vocal Joseph</h1>
-    <button onclick="startRecording()">🎙️ Démarrer</button>
-    <button onclick="stopRecording()">⏹️ Arrêter</button>
+
+    <div class="history" id="historyContainer"></div>
+
+    <button id="recordBtn">🎙️ Maintenir pour parler</button>
     <div id="status"></div>
   </div>
 
   <script>
+    const btn = document.getElementById('recordBtn');
+    const status = document.getElementById('status');
+    const history = document.getElementById('historyContainer');
+
+    let isRecording = false;
+    let isStopping = false;
+    let startTime = 0;
+    let counter = 1;
+
+    btn.addEventListener('mousedown', startRecording);
+    btn.addEventListener('touchstart', startRecording);
+    btn.addEventListener('mouseup', stopRecording);
+    btn.addEventListener('mouseleave', stopRecording);
+    btn.addEventListener('touchend', stopRecording);
+
     function startRecording() {
+      if (isRecording || isStopping) return;
+      isRecording = true;
+      startTime = new Date().getTime();
       fetch('/start', { method: 'POST' });
-      const status = document.getElementById('status');
       status.innerText = '🎙️ Enregistrement en cours...';
       status.classList.add('blinking');
+      btn.classList.add('recording');
     }
 
     function stopRecording() {
+      if (!isRecording || isStopping) return;
+      isStopping = true;
+      const endTime = new Date().getTime();
+      const duration = Math.round((endTime - startTime) / 1000);
+
       fetch('/stop', { method: 'POST' })
         .then(r => r.blob())
         .then(blob => {
           const url = URL.createObjectURL(blob);
           const audio = new Audio(url);
           audio.play();
-          const status = document.getElementById('status');
-          status.innerText = '✅ Voix générée !';
+
+          status.innerText = '✅ Voix générée avec succès !';
           status.classList.remove('blinking');
+          btn.classList.remove('recording');
+
+          const entry = document.createElement('div');
+          entry.className = 'entry';
+          entry.innerHTML = `
+            <span>📼 Enregistrement #${counter} — ${duration}s</span><br/>
+            <button onclick="new Audio('${url}').play()">🔁 Réécouter</button>
+          `;
+          history.prepend(entry);
+          counter++;
+        })
+        .finally(() => {
+          isRecording = false;
+          isStopping = false;
         });
     }
   </script>
