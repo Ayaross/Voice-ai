@@ -113,7 +113,7 @@
       isRecording = true;
       startTime = new Date().getTime();
       fetch('/start', { method: 'POST' });
-      status.innerText = '🎙️ Enregistrement en cours...';
+      status.innerText = '🎙️ Enregistrement en cours joseph...';
       status.classList.add('blinking');
       btn.classList.add('recording');
     }
@@ -131,7 +131,7 @@
           const audio = new Audio(url);
           audio.play();
 
-          status.innerText = '✅ Voix générée avec succès !';
+          status.innerText = '✅ Voix générée avec succès Joseph !';
           status.classList.remove('blinking');
           btn.classList.remove('recording');
 
